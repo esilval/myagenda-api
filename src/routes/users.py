@@ -26,6 +26,8 @@ def create_user():
     except ValueError as e:
         code = 409 if str(e) in {"EMAIL_TAKEN", "NICKNAME_TAKEN"} else 400
         return jsonify({"error": str(e)}), code
+    finally:
+        db.close()
 
 
 @bp.patch("/<user_id>")
@@ -47,6 +49,8 @@ def update_user(user_id: str):
         if msg == "NICKNAME_TAKEN":
             return jsonify({"error": msg}), 409
         return jsonify({"error": msg}), 400
+    finally:
+        db.close()
 
 
 @bp.post("/<user_id>/activate")
@@ -59,6 +63,8 @@ def activate_user(user_id: str):
         return jsonify(user.model_dump()), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 404
+    finally:
+        db.close()
 
 
 @bp.post("/<user_id>/deactivate")
@@ -71,5 +77,7 @@ def deactivate_user(user_id: str):
         return jsonify(user.model_dump()), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 404
+    finally:
+        db.close()
 
 

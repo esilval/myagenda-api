@@ -26,6 +26,8 @@ def create_company():
     except ValueError as e:
         code = 409 if str(e) == "NIT_TAKEN" else 400
         return jsonify({"error": str(e)}), code
+    finally:
+        db.close()
 
 
 @bp.get("")
@@ -36,8 +38,11 @@ def list_companies():
     status = request.args.get("status")
     text = request.args.get("q")
     db = next(get_db())
-    total, items = CompanyService(db).list_paginated(page=page, size=size, status=status, text=text)
-    return jsonify({"total": total, "items": [i.model_dump() for i in items]}), 200
+    try:
+        total, items = CompanyService(db).list_paginated(page=page, size=size, status=status, text=text)
+        return jsonify({"total": total, "items": [i.model_dump() for i in items]}), 200
+    finally:
+        db.close()
 
 
 @bp.get("/<company_id>")
@@ -49,6 +54,8 @@ def get_company(company_id: str):
         return jsonify(c.model_dump()), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 404
+    finally:
+        db.close()
 
 
 @bp.put("/<company_id>")
@@ -68,6 +75,8 @@ def update_company(company_id: str):
         if str(e) == "NIT_TAKEN":
             return jsonify({"error": "NIT_TAKEN"}), 409
         return jsonify({"error": str(e)}), 400
+    finally:
+        db.close()
 
 
 @bp.delete("/<company_id>")
@@ -79,5 +88,7 @@ def delete_company(company_id: str):
         return ("", 204)
     except ValueError:
         return jsonify({"error": "NOT_FOUND"}), 404
+    finally:
+        db.close()
 
 

@@ -23,6 +23,8 @@ def login():
         return jsonify({"access_token": token, "token_type": "bearer", "expires_in": 1800}), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 401
+    finally:
+        db.close()
 
 
 @bp.get("/auth")
@@ -47,5 +49,7 @@ def auth():
         return jsonify(dto.model_dump()), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 401
+    finally:
+        db.close()
 
 

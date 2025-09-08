@@ -29,6 +29,8 @@ def create_client():
         if str(e) in {"EMAIL_TAKEN", "PHONE_TAKEN"}:
             return jsonify({"error": str(e)}), 409
         return jsonify({"error": str(e)}), 400
+    finally:
+        db.close()
 
 
 @bp.get("")
@@ -41,27 +43,30 @@ def list_clients():
     include_company = request.args.get("include_company") == "true"
     status_enum = ClientStatus(status) if status in {"ACTIVE", "INACTIVE"} else None
     db = next(get_db())
-    service = ClientService(db)
-    total, items = service.list_paginated(page=page, size=size, status=status_enum, text=text, current_user_id=g.current_user.id)
-    result = [i.model_dump() for i in items]
-    if include_company:
-        # naive join: fetch companies by batch
-        from src.dao.company_dao import CompanyDAO
+    try:
+        service = ClientService(db)
+        total, items = service.list_paginated(page=page, size=size, status=status_enum, text=text, current_user_id=g.current_user.id)
+        result = [i.model_dump() for i in items]
+        if include_company:
+            # naive join: fetch companies by batch
+            from src.dao.company_dao import CompanyDAO
 
-        company_ids = {it["company_id"] for it in result if it.get("company_id")}
-        companies = {c.id: c for c in CompanyDAO(db).get_by_ids(list(company_ids))}
-        for it in result:
-            cid = it.get("company_id")
-            comp = companies.get(cid)
-            if comp:
-                it["company"] = {
-                    "id": comp.id,
-                    "nit": comp.nit,
-                    "business_name": comp.business_name,
-                    "city": comp.city,
-                    "status": comp.status.value,
-                }
-    return jsonify({"total": total, "items": result}), 200
+            company_ids = {it["company_id"] for it in result if it.get("company_id")}
+            companies = {c.id: c for c in CompanyDAO(db).get_by_ids(list(company_ids))}
+            for it in result:
+                cid = it.get("company_id")
+                comp = companies.get(cid)
+                if comp:
+                    it["company"] = {
+                        "id": comp.id,
+                        "nit": comp.nit,
+                        "business_name": comp.business_name,
+                        "city": comp.city,
+                        "status": comp.status.value,
+                    }
+        return jsonify({"total": total, "items": result}), 200
+    finally:
+        db.close()
 
 
 @bp.put("/<client_id>")
@@ -81,6 +86,8 @@ def update_client(client_id: str):
         if str(e) in {"EMAIL_TAKEN", "PHONE_TAKEN"}:
             return jsonify({"error": str(e)}), 409
         return jsonify({"error": str(e)}), 400
+    finally:
+        db.close()
 
 
 @bp.post("/<client_id>/deactivate")
@@ -93,6 +100,8 @@ def deactivate_client(client_id: str):
     except ValueError as e:
         code = 404 if str(e) == "NOT_FOUND" else 400
         return jsonify({"error": str(e)}), code
+    finally:
+        db.close()
 
 
 @bp.delete("/<client_id>")
@@ -105,5 +114,7 @@ def delete_client(client_id: str):
     except ValueError as e:
         code = 404 if str(e) == "NOT_FOUND" else 400
         return jsonify({"error": str(e)}), code
+    finally:
+        db.close()
 
 
