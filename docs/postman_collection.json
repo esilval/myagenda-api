@@ -323,6 +323,20 @@
       ]
     },
     {
+      "name": "Clients - Get by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/clients/{{clientId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["clients", "{{clientId}}"]
+        }
+      }
+    },
+    {
       "name": "Clients - List (include company)",
       "request": {
         "method": "GET",

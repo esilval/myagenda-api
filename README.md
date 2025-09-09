@@ -192,6 +192,10 @@ curl -s -X POST http://localhost:5000/clients \
 # 6) Listar clientes incluyendo datos de compañía
 curl -s "http://localhost:5000/clients?include_company=true&q=perez&page=1&size=10" \
   -H "Authorization: Bearer $TOKEN"
+
+# 7) Obtener detalle de un cliente por ID
+CLIENT_ID=$(curl -s "http://localhost:5000/clients?page=1&size=1" -H "Authorization: Bearer $TOKEN" | jq -r .items[0].id)
+curl -s "http://localhost:5000/clients/$CLIENT_ID" -H "Authorization: Bearer $TOKEN"
 ```
 
 Para más detalles de filtros e índices, ver `docs/guia-busquedas.md`.

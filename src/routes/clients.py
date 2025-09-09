@@ -118,3 +118,16 @@ def delete_client(client_id: str):
         db.close()
 
 
+@bp.get("/<client_id>")
+@require_auth
+def get_client(client_id: str):
+    db = next(get_db())
+    try:
+        c = ClientService(db).dao.get_by_id(client_id)
+        if not c:
+            return jsonify({"error": "NOT_FOUND"}), 404
+        dto = ClientService._to_dto(c)
+        return jsonify(dto.model_dump()), 200
+    finally:
+        db.close()
+
